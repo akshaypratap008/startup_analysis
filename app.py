@@ -140,18 +140,78 @@ def load_overall_analysis():
 def load_startup_details(startup):
     st.title(startup)
 
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        # industry
+        industry = df[df['startup'] == startup]['vertical'].values[0]
+        st.subheader('Industry')
+        st.write(industry)
+    with col2:
+        # sub-industry
+        sub_industry = df[df['startup'] == startup]['subvertical'].values[0]
+        st.subheader('Sub-Industry')
+        st.write(sub_industry)
+    with col3:
+        #location
+        location = df[df['startup'] == startup]['city'].values[0]
+        st.subheader('City')
+        st.write(location)
+    with col4:
+        #total funding so far
+        total_funding = df[df['startup'] == startup]['amount'].sum()
+        st.subheader('Total Funding')
+        st.write(str(total_funding) + ' Cr')
+
+    st.header('Funding Information')
+    col1, col2 = st.columns(2)
+    with col1:
+        #funding round
+        round = df[df['startup'] == startup].sort_values('date', ascending=False)['round'].values[0]
+        st.subheader('Latest Funding Round')
+        st.write(round)
+    with col2:
+        #latest funding info
+        latest_funding = df[df['startup'] == startup][['date', 'round', 'investor', 'amount']].sort_values('date', ascending=False, ignore_index=True)
+        st.subheader('Latest Fundings')
+        st.write(latest_funding)
+
+
+    col1, col2 = st.columns(2)
+    with col1:
+        # year on year growth
+        st.header('Year on Year growth in investments')
+        temp_df = df[df['startup'] == startup]
+        yearly_amount = temp_df.groupby('year')['amount'].sum()
+        fig, ax = plt.subplots(figsize=(10, 8))
+        ax.plot(yearly_amount.index, yearly_amount.values)
+        fig.tight_layout()
+        plt.xlabel('Year')
+        plt.ylabel('Amount')
+        st.pyplot(fig)
+    with col2:
+        # highest investment rounds
+        st.header('Investment rounds')
+        temp_df = df[df['startup'] == startup]
+        round_summary = temp_df.groupby('round')['amount'].sum()
+        fig, ax = plt.subplots(figsize=(10,8))
+        ax.pie(round_summary, labels=round_summary.index, autopct='%1.1f%%', startangle=90)
+        plt.tight_layout()
+        plt.legend()
+        st.pyplot(fig)
+
+
+
 if option == 'Overall Analysis':
     st.title('Overall Analysis')
     load_overall_analysis()
 
 
 elif option == 'Startup':
+    st.title('Startup Analysis')
     selected_startup = st.sidebar.selectbox('Select Startup', sorted(df['startup'].unique().tolist()))
     btn1 = st.sidebar.button('Find Startup Details')
     if btn1:
         load_startup_details(selected_startup)
-
-    st.title('Startup Analysis')
 
 elif option == 'Investors':
     st.title('Investor Analysis')
